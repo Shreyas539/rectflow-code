@@ -2,14 +2,19 @@ import { Handle, Position } from "@xyflow/react";
 import React from "react";
 
 export const SquareNode = ({ id, data }) => {
-  const portCount = 16; // 16 on top, 16 on bottom
-  const totalWidth = 200;
+  const topCount = 10;
+  const bottomCount = 10;
+  const leftCount = 6;
+  const rightCount = 6;
+
+  const width = 200;
+  const height = 120;
 
   const handleStyle = {
     width: 10,
     height: 10,
-    opacity: 0, // 👈 invisible
-    pointerEvents: "auto", // 👈 connectable
+    opacity: 1, // invisible
+    pointerEvents: "auto",
     position: "absolute",
     zIndex: 2,
   };
@@ -30,30 +35,32 @@ export const SquareNode = ({ id, data }) => {
 
   const backgroundColor = statusColorMap[data?.status] || "#ccc";
 
+  const generateHandleId = (side, index) => `${id}-${side}-${index + 1}`;
+
   return (
     <div
       style={{
         position: "relative",
-        width: totalWidth,
-        height: 100,
-        backgroundColor: data?.color || "#ccc",
+        width,
+        height,
+        backgroundColor,
         borderRadius: 6,
       }}
     >
-      {/* Top Handles */}
-      {Array.from({ length: portCount }).map((_, i) => {
-        const leftPercent = (i + 1) * (100 / (portCount + 1));
+      {/* Top handles */}
+      {Array.from({ length: topCount }).map((_, i) => {
+        const left = ((i + 1) * 100) / (topCount + 1);
         return (
           <React.Fragment key={`top-${i}`}>
             <Handle
-              id={`top-${i + 1}`}
+              id={generateHandleId("top", i)}
               type="source"
               position={Position.Top}
               isConnectable={true}
               style={{
                 ...handleStyle,
-                left: `${leftPercent}%`,
-                top: -1,
+                top: -5,
+                left: `${left}%`,
                 transform: "translateX(-50%)",
               }}
             />
@@ -61,8 +68,8 @@ export const SquareNode = ({ id, data }) => {
               <div
                 style={{
                   ...portLabelStyle,
-                  top: -16,
-                  left: `${leftPercent}%`,
+                  top: -18,
+                  left: `${left}%`,
                   transform: "translateX(-50%)",
                 }}
               >
@@ -73,20 +80,20 @@ export const SquareNode = ({ id, data }) => {
         );
       })}
 
-      {/* Bottom Handles */}
-      {Array.from({ length: portCount }).map((_, i) => {
-        const leftPercent = (i + 1) * (100 / (portCount + 1));
+      {/* Bottom handles */}
+      {Array.from({ length: bottomCount }).map((_, i) => {
+        const left = ((i + 1) * 100) / (bottomCount + 1);
         return (
           <React.Fragment key={`bottom-${i}`}>
             <Handle
-              id={`bottom-${i + portCount + 1}`}
+              id={generateHandleId("bottom", i)}
               type="target"
               position={Position.Bottom}
               isConnectable={true}
               style={{
                 ...handleStyle,
-                left: `${leftPercent}%`,
                 bottom: -5,
+                left: `${left}%`,
                 transform: "translateX(-50%)",
               }}
             />
@@ -95,18 +102,84 @@ export const SquareNode = ({ id, data }) => {
                 style={{
                   ...portLabelStyle,
                   bottom: -18,
-                  left: `${leftPercent}%`,
+                  left: `${left}%`,
                   transform: "translateX(-50%)",
                 }}
               >
-                {i + portCount + 1}
+                {topCount + i + 1}
               </div>
             )}
           </React.Fragment>
         );
       })}
 
-      {/* Label in Center */}
+      {/* Left handles */}
+      {Array.from({ length: leftCount }).map((_, i) => {
+        const top = ((i + 1) * 100) / (leftCount + 1);
+        return (
+          <React.Fragment key={`left-${i}`}>
+            <Handle
+              id={generateHandleId("left", i)}
+              type="source"
+              position={Position.Left}
+              isConnectable={true}
+              style={{
+                ...handleStyle,
+                top: `${top}%`,
+                left: -5,
+                transform: "translateY(-50%)",
+              }}
+            />
+            {data?.showLabels && (
+              <div
+                style={{
+                  ...portLabelStyle,
+                  left: -20,
+                  top: `${top}%`,
+                  transform: "translateY(-50%)",
+                }}
+              >
+                {topCount + bottomCount + i + 1}
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
+
+      {/* Right handles */}
+      {Array.from({ length: rightCount }).map((_, i) => {
+        const top = ((i + 1) * 100) / (rightCount + 1);
+        return (
+          <React.Fragment key={`right-${i}`}>
+            <Handle
+              id={generateHandleId("right", i)}
+              type="target"
+              position={Position.Right}
+              isConnectable={true}
+              style={{
+                ...handleStyle,
+                top: `${top}%`,
+                right: -5,
+                transform: "translateY(-50%)",
+              }}
+            />
+            {data?.showLabels && (
+              <div
+                style={{
+                  ...portLabelStyle,
+                  right: -25,
+                  top: `${top}%`,
+                  transform: "translateY(-50%)",
+                }}
+              >
+                {topCount + bottomCount + leftCount + i + 1}
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
+
+      {/* Node label */}
       <div
         style={{
           position: "absolute",
@@ -116,6 +189,8 @@ export const SquareNode = ({ id, data }) => {
           fontWeight: "bold",
           fontSize: 12,
           color: "#111",
+          textAlign: "center",
+          pointerEvents: "none",
         }}
       >
         {data?.label || "Node"}
