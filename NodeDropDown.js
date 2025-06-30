@@ -3,6 +3,8 @@ import React from "react";
 const nodeOptions = [
   { type: "square", label: "Router", color: "#f39c12" },
   { type: "square", label: "Switch", color: "#2980b9" },
+  { type: "square", label: "Router 2", color: "#f39c12" },
+  { type: "square", label: "Switch 2", color: "#2980b9" },
   { type: "circle", label: "Laptop", color: "#27ae60" },
   { type: "triangle", label: "Time Server", color: "#8e44ad" },
 ];
