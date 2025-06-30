@@ -1,0 +1,142 @@
+To implement dynamic node grouping in React Flow as you described (multi-select + group + ungroup with resize behavior), follow the steps below:
+
+✅ Feature Goals
+Multi-select nodes via Shift + Click
+
+"Group Nodes" button appears → creates a group (parent) node
+
+Child nodes are:
+
+Assigned parentNode
+
+Given extent: 'parent'
+
+Positioned relatively inside the group
+
+Group node auto-resizes to fit children
+
+"Ungroup" button appears when selecting a group
+
+🧱 Required Setup
+1. Enable selection in React Flow
+jsx
+Copy
+Edit
+<ReactFlow
+  nodes={nodes}
+  edges={edges}
+  onNodesChange={onNodesChange}
+  onEdgesChange={onEdgesChange}
+  onConnect={onConnect}
+  multiSelectionKeyCode="Shift" // 👈 Shift + click to multi-select
+  selectionOnDrag
+>
+2. Track Selected Nodes
+js
+Copy
+Edit
+const [selectedNodes, setSelectedNodes] = useState([]);
+
+const onSelectionChange = useCallback(({ nodes }) => {
+  setSelectedNodes(nodes);
+}, []);
+jsx
+Copy
+Edit
+<ReactFlow
+  ...
+  onSelectionChange={onSelectionChange}
+/>
+3. "Group Nodes" Button UI
+jsx
+Copy
+Edit
+{selectedNodes.length > 1 && (
+  <button onClick={handleGroupNodes} style={{ position: 'absolute', top: 20, left: 200 }}>
+    Group Nodes
+  </button>
+)}
+4. Group Nodes Function
+js
+Copy
+Edit
+const handleGroupNodes = () => {
+  const groupId = `group-${Date.now()}`;
+
+  // Find bounds of selected nodes
+  const minX = Math.min(...selectedNodes.map((n) => n.position.x));
+  const minY = Math.min(...selectedNodes.map((n) => n.position.y));
+  const maxX = Math.max(...selectedNodes.map((n) => n.position.x + (n.width || 150)));
+  const maxY = Math.max(...selectedNodes.map((n) => n.position.y + (n.height || 50)));
+
+  const groupNode = {
+    id: groupId,
+    type: "group", // custom group type
+    position: { x: minX - 40, y: minY - 40 },
+    data: {},
+    style: {
+      width: maxX - minX + 80,
+      height: maxY - minY + 80,
+      backgroundColor: "rgba(100, 100, 255, 0.2)",
+      border: "1px dashed #333",
+    },
+  };
+
+  // Update child nodes
+  const updatedNodes = nodes.map((n) => {
+    if (selectedNodes.find((sel) => sel.id === n.id)) {
+      return {
+        ...n,
+        parentNode: groupId,
+        extent: "parent",
+        position: {
+          x: n.position.x - groupNode.position.x,
+          y: n.position.y - groupNode.position.y,
+        },
+      };
+    }
+    return n;
+  });
+
+  setNodes((nds) => [...updatedNodes, groupNode]);
+};
+5. Ungroup Nodes Function
+js
+Copy
+Edit
+const handleUngroup = () => {
+  const groupNode = selectedNodes.find((n) => n.type === "group");
+  if (!groupNode) return;
+
+  const children = nodes.filter((n) => n.parentNode === groupNode.id);
+  const updatedChildren = children.map((n) => ({
+    ...n,
+    parentNode: null,
+    extent: undefined,
+    position: {
+      x: n.position.x + groupNode.position.x,
+      y: n.position.y + groupNode.position.y,
+    },
+  }));
+
+  const remaining = nodes.filter((n) => n.id !== groupNode.id && n.parentNode !== groupNode.id);
+
+  setNodes([...remaining, ...updatedChildren]);
+};
+6. Show "Ungroup" Button
+jsx
+Copy
+Edit
+{selectedNodes.length === 1 && selectedNodes[0].type === "group" && (
+  <button onClick={handleUngroup} style={{ position: 'absolute', top: 60, left: 200 }}>
+    Ungroup
+  </button>
+)}
+📦 Final Notes
+Group node type can be styled like your SquareNode or default node.
+
+For true auto-resizing group nodes, use a library like react-measure or calculate bounds during onNodesChange.
+
+If you want to make group nodes resizable, you can wrap them in a <Resizable> container or use React Flow Pro features.
+
+Would you like a complete working example with all this integrated?
